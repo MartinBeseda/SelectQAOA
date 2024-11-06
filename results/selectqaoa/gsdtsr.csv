@@ -1,0 +1,2 @@
+final_test_suite_costs,final_failure_rates,average_qpu_access_time(ms),qpu_lower_bound(ms),qpu_upper_bound()
+[8142254.940489174],[0.7453749827689651],3703.446090221405,3508.887094259262,3910.673541724682
