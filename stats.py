@@ -16,7 +16,7 @@ def a12(lst1,lst2,rev=True):
   return (more + 0.5*same)  / (len(lst1)*len(lst2))
 
 def stat_test(app1, app2):
-    statistic, pvalue = mannwhitneyu(app1, app2, alternative='two-sided')
+    statistic, pvalue = mannwhitneyu(app1, app2, alternative='greater')
 
     # Calculate the A12 effect size using Vargha and Delaney's formula
     a12_effect_size = a12(app1, app2)
@@ -24,36 +24,24 @@ def stat_test(app1, app2):
     return pvalue, a12_effect_size
 
 def plotter(data_name, bootqa_costs, qaoa_costs, qtcs_costs, bootqa_rates, qaoa_rates, qtcs_rates):
-    plt.figure(figsize=(8, 6))
+    # Create a new figure
+    plt.figure(figsize=(10, 6))
 
-    # Plot bootqa rates vs costs
-    plt.scatter(bootqa_costs, bootqa_rates, color='blue', label='bootqa')
+    # Plot the pairs (bootqa_costs, bootqa_rates), (qaoa_costs, qaoa_rates), (qtcs_costs, qtcs_rates)
+    plt.plot(bootqa_costs, bootqa_rates, label='BootQA', marker='o', linestyle='-', color='b')
+    plt.plot(qaoa_costs, qaoa_rates, label='QAOA', marker='x', linestyle='--', color='g')
+    plt.plot(qtcs_costs, qtcs_rates, label='QTCS', marker='s', linestyle=':', color='r')
 
-    # Plot qtcs rates vs costs
-    plt.scatter(qaoa_costs, qaoa_rates, color='red', label='qaoa')
+    # Add labels and title
+    plt.xlabel('Cost')
+    plt.ylabel('Rate')
+    plt.title(f'Cost vs Rate for {data_name}')
 
-    # Plot qtcs rates vs costs
-    plt.scatter(qtcs_costs, qtcs_rates, color='blue', label='qtcs')
-
-    plt.xlabel('Costs')
-    plt.ylabel('Rates')
-    plt.title('Rates vs Costs for ' + data_name)
+    # Add a legend
     plt.legend()
+
+    # Show the plot
     plt.grid(True)
-
-    # Add lines from red points to x-axis
-    for i in range(len(qaoa_costs)):
-        plt.plot([qaoa_costs[i], qaoa_costs[i]], [qaoa_costs[i], 0], color='red', linestyle='--')
-
-    for j in range(len(qtcs_costs)):
-        plt.plot([qtcs_costs[i], qtcs_costs[i]], [qtcs_costs[i], 0], color='blue', linestyle='--')
-
-    # Add line from red points to infinity
-    max_qaoa_cost = max(qaoa_costs)
-    max_qtcs_costs = max(qtcs_costs)
-    plt.hlines(bootqa_rates, max_qaoa_cost, max_qaoa_cost + 1, colors='red', linestyles='--')
-    plt.hlines(bootqa_rates, max_qtcs_costs, max_qtcs_costs + 1, colors='blue', linestyles='--')
-
     plt.show()
 
 if __name__ == '__main__':
@@ -70,7 +58,7 @@ if __name__ == '__main__':
         final_test_suite_costs_bootqa = ast.literal_eval(sum_df_bootqa['final_test_suite_costs'].iloc[-1])
         final_failure_rates_bootqa = ast.literal_eval(sum_df_bootqa['final_failure_rates'].iloc[-1])
 
-        file_path_qtcs = (f".results/selectqa/{data_name}.csv")
+        file_path_qtcs = (f"./results/selectqa/{data_name}.csv")
 
         # read qaoa results
         sum_df_qtcs = pd.read_csv(file_path_qtcs)
@@ -79,7 +67,7 @@ if __name__ == '__main__':
         final_test_suite_costs_qtcs = ast.literal_eval(sum_df_qtcs['final_test_suite_costs'].iloc[-1])
         final_failure_rates_qtcs = ast.literal_eval(sum_df_qtcs['final_failure_rates'].iloc[-1])
 
-        file_path_qaoa = (f".results/selectqaoa/{data_name}.csv")
+        file_path_qaoa = (f"./results/selectqaoa/{data_name}.csv")
 
         # read qaoa results
         sum_df_qaoa = pd.read_csv(file_path_qaoa)
@@ -106,7 +94,7 @@ if __name__ == '__main__':
         plotter(data_name,final_test_suite_costs_bootqa,final_test_suite_costs_qaoa,final_test_suite_costs_qtcs,
                 final_failure_rates_bootqa,final_failure_rates_qaoa,final_failure_rates_qtcs)
 
-    with open('.results/stats_results.csv', 'w', newline='') as csvfile:
+    with open('./results/stats_results.csv', 'w', newline='') as csvfile:
         field_names = ["data_name", "cost_p_value_qaoa_bootqa", "cost_a12_qaoa_bootqa",
                        "rate_p_value_qaoa_bootqa", "rate_a12_qaoa_bootqa", "cost_p_value_qaoa_qtcs",
                        "cost_a12_qaoa_qtcs", "rate_p_value_qaoa_qtcs", "rate_a12_qaoa_qtcs",
