@@ -39,7 +39,7 @@ BootQA, all the files needed to gather execution costs and failure rate informat
 
 Let's use gsdtsr as an example.
 
-The folder "./datasets/boot_qa_datasets/gsdtsr" contains the file "gdtsr.csv" dataset file. This 
+The folder "./datasets/boot_qa_datasets" contains for example the file "gdtsr.csv" dataset file. This 
 file contains, except for the first, many rows as test cases. Each row is then 
 divided by three columns: id, time, and rate.
 
@@ -73,9 +73,16 @@ The second section contains the pipeline to read the datasets and run SelectQAOA
 section is completely generalized and automated, so there is no need for manual 
 configurations.
 
+The files that contain the execution of BootQA and the empirical evaluations between 
+SelectQA and BootQA are different and its description follows.
+
+### stats.py
+
+This file, contained in the root folder, executes the empirical comparisons between SelectQAOA, SelectQA and BootQA, and it is not 
+necessary to configure it. The final results are stored in ".results/stats_results.csv" file.
+
 ## Results Files
 
-The "./results" contains all the results obtained by SelectQAOA, DIV-GA, Additional Greedy, SelectQA and BootQA after all the experiment executions.
+The "./results" folder contains all the results obtained by SelectQAOA, DIV-GA, Additional Greedy, SelectQA and BootQA after all the experiment executions.
 These files are needed to make all the empirical evaluations and comparisons between 
-the three methods. The results files are in the "./results" folder and are 
-divided by algorithm.
+the three methods. The ".results/stats_results.csv" file contains the results of the statistical comparisons between SelectQAOA, SelectQA, and BootQA.
