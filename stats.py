@@ -94,7 +94,7 @@ if __name__ == '__main__':
         plotter(data_name,final_test_suite_costs_bootqa,final_test_suite_costs_qaoa,final_test_suite_costs_qtcs,
                 final_failure_rates_bootqa,final_failure_rates_qaoa,final_failure_rates_qtcs)
 
-    with open('./results/stats_results.csv', 'w', newline='') as csvfile:
+    with open('results/selectqaoa/statevector_sim/stats_results.csv', 'w', newline='') as csvfile:
         field_names = ["data_name", "cost_p_value_qaoa_bootqa", "cost_a12_qaoa_bootqa",
                        "rate_p_value_qaoa_bootqa", "rate_a12_qaoa_bootqa", "cost_p_value_qaoa_qtcs",
                        "cost_a12_qaoa_qtcs", "rate_p_value_qaoa_qtcs", "rate_a12_qaoa_qtcs",
