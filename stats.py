@@ -15,8 +15,8 @@ def a12(lst1,lst2,rev=True):
       elif not rev and x < y : more += 1
   return (more + 0.5*same)  / (len(lst1)*len(lst2))
 
-def stat_test(app1, app2):
-    statistic, pvalue = mannwhitneyu(app1, app2, alternative='greater')
+def stat_test(app1, app2, alt):
+    statistic, pvalue = mannwhitneyu(app1, app2, alternative=alt)
 
     # Calculate the A12 effect size using Vargha and Delaney's formula
     a12_effect_size = a12(app1, app2)
@@ -27,10 +27,10 @@ def plotter(data_name, bootqa_costs, qaoa_costs, qtcs_costs, bootqa_rates, qaoa_
     # Create a new figure
     plt.figure(figsize=(10, 6))
 
-    # Plot the pairs (bootqa_costs, bootqa_rates), (qaoa_costs, qaoa_rates), (qtcs_costs, qtcs_rates)
-    plt.plot(bootqa_costs, bootqa_rates, label='BootQA', marker='o', linestyle='-', color='b')
-    plt.plot(qaoa_costs, qaoa_rates, label='QAOA', marker='x', linestyle='--', color='g')
-    plt.plot(qtcs_costs, qtcs_rates, label='QTCS', marker='s', linestyle=':', color='r')
+    # Plot isolated points for each dataset
+    plt.scatter(bootqa_costs, bootqa_rates, label='BootQA', marker='o', color='b', s=50)
+    plt.scatter(qaoa_costs, qaoa_rates, label='SelectQAOA', marker='x', color='g', s=200)
+    plt.scatter(qtcs_costs, qtcs_rates, label='SelectQA', marker='s', color='r', s=50)
 
     # Add labels and title
     plt.xlabel('Cost')
@@ -67,7 +67,7 @@ if __name__ == '__main__':
         final_test_suite_costs_qtcs = ast.literal_eval(sum_df_qtcs['final_test_suite_costs'].iloc[-1])
         final_failure_rates_qtcs = ast.literal_eval(sum_df_qtcs['final_failure_rates'].iloc[-1])
 
-        file_path_qaoa = (f"./results/selectqaoa/{data_name}.csv")
+        file_path_qaoa = (f"./results/selectqaoa/depolarizing_sim/05/{data_name}.csv")
 
         # read qaoa results
         sum_df_qaoa = pd.read_csv(file_path_qaoa)
@@ -76,12 +76,14 @@ if __name__ == '__main__':
         final_test_suite_costs_qaoa = ast.literal_eval(sum_df_qaoa['final_test_suite_costs'].iloc[-1])
         final_failure_rates_qaoa = ast.literal_eval(sum_df_qaoa['final_failure_rates'].iloc[-1])
 
-        cost_p_value_qaoa_bootqa, cost_a12_qaoa_bootqa = stat_test(final_test_suite_costs_qaoa,final_test_suite_costs_bootqa)
-        rate_p_value_qaoa_bootqa, rate_a12_qaoa_bootqa = stat_test(final_failure_rates_qaoa,final_failure_rates_bootqa)
-        cost_p_value_qaoa_qtcs, cost_a12_qaoa_qtcs = stat_test(final_test_suite_costs_qaoa, final_test_suite_costs_qtcs)
-        rate_p_value_qaoa_qtcs, rate_a12_qaoa_qtcs = stat_test(final_failure_rates_qaoa, final_failure_rates_qtcs)
-        cost_p_value_qtcs_bootqa, cost_a12_qtcs_bootqa = stat_test(final_test_suite_costs_qtcs, final_test_suite_costs_bootqa)
-        rate_p_value_qtcs_bootqa, rate_a12_qtcs_bootqa = stat_test(final_failure_rates_qtcs, final_failure_rates_bootqa)
+
+
+        cost_p_value_qaoa_bootqa, cost_a12_qaoa_bootqa = stat_test(final_test_suite_costs_qaoa,final_test_suite_costs_bootqa,'less')
+        rate_p_value_qaoa_bootqa, rate_a12_qaoa_bootqa = stat_test(final_failure_rates_qaoa,final_failure_rates_bootqa,'greater')
+        cost_p_value_qaoa_qtcs, cost_a12_qaoa_qtcs = stat_test(final_test_suite_costs_qaoa, final_test_suite_costs_qtcs,'less')
+        rate_p_value_qaoa_qtcs, rate_a12_qaoa_qtcs = stat_test(final_failure_rates_qaoa, final_failure_rates_qtcs,'greater')
+        cost_p_value_qtcs_bootqa, cost_a12_qtcs_bootqa = stat_test(final_test_suite_costs_qtcs, final_test_suite_costs_bootqa,'less')
+        rate_p_value_qtcs_bootqa, rate_a12_qtcs_bootqa = stat_test(final_failure_rates_qtcs, final_failure_rates_bootqa,'greater')
 
         data_names_stats[data_name] = [(cost_p_value_qaoa_bootqa,cost_a12_qaoa_bootqa),
                                        (rate_p_value_qaoa_bootqa, rate_a12_qaoa_bootqa),
@@ -94,7 +96,7 @@ if __name__ == '__main__':
         plotter(data_name,final_test_suite_costs_bootqa,final_test_suite_costs_qaoa,final_test_suite_costs_qtcs,
                 final_failure_rates_bootqa,final_failure_rates_qaoa,final_failure_rates_qtcs)
 
-    with open('results/selectqaoa/statevector_sim/stats_results.csv', 'w', newline='') as csvfile:
+    with open('results/selectqaoa/depolarizing_sim/05/stats_results.csv', 'w', newline='') as csvfile:
         field_names = ["data_name", "cost_p_value_qaoa_bootqa", "cost_a12_qaoa_bootqa",
                        "rate_p_value_qaoa_bootqa", "rate_a12_qaoa_bootqa", "cost_p_value_qaoa_qtcs",
                        "cost_a12_qaoa_qtcs", "rate_p_value_qaoa_qtcs", "rate_a12_qaoa_qtcs",
