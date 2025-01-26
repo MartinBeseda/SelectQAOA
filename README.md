@@ -1,3 +1,5 @@
+##TODO: aggiungi sezione in cui parli della modifica dell'estrazione dei dati
+
 # SelectQAOA - Quantum Regression Test Case Selection
 This repository contains all the necessary resources to reproduce the results of the 
 SelectQAOA method.
