@@ -10,7 +10,9 @@ alpha = 0.5
 # let's make a function to read the fault matrices
 # IMPORTANT: all the fault-matrix files must be renamed as "fault-matrix".txt and must be written using the same standard used by the files of this project (i-th line->e0e1e2e3..., where ej is 0 if the i-th test found a bug when launched on the j-th version)
 def get_fault_list(program_name: str):
-    """This function opens the fault-matrix file of a sir programs and makes a list of binary values for each test case of that program to indicate whether a test case found or not a bug in at least one of the available versions of the program"""
+    """This function opens the fault-matrix file of a sir programs and makes a list of binary values for each test case
+    of that program to indicate whether a test case found or not a bug in at least one of the available versions
+    of the program"""
     # open the fault-matrix file of the desired SIR program
     program_file = open("datasets/sir_programs/" + program_name + "/fault-matrix.txt")
     lines = program_file.readlines()
@@ -35,7 +37,9 @@ def get_fault_list(program_name: str):
 # the next function is able to research into the json coverage information file of each test case
 # of each sir program to gather information about the single test cases costs and coverage
 def cost_and_coverage_information_gathering(program_name: str):
-    """The aim of this function is to obtain a dictionary that for each test case of a program indicates its cost, and a dictionary that, for each code line of the program to test, makes a list of all the test cases that run that line"""
+    """The aim of this function is to obtain a dictionary that for each test case of a program indicates its cost,
+    and a dictionary that, for each code line of the program to test, makes a list of all the test cases that
+    run that line"""
     test_case_execution_cost = 0
 
     execution_cost_test_by_test = dict()
