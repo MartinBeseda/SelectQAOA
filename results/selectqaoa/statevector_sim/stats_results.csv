@@ -1,3 +1,0 @@
-data_name,cost_p_value_qaoa_bootqa,cost_a12_qaoa_bootqa,rate_p_value_qaoa_bootqa,rate_a12_qaoa_bootqa,cost_p_value_qaoa_qtcs,cost_a12_qaoa_qtcs,rate_p_value_qaoa_qtcs,rate_a12_qaoa_qtcs,cost_p_value_qtcs_bootqa,cost_a12_qtcs_bootqa,rate_p_value_qtcs_bootqa,rate_a12_qtcs_bootqa
-gsdtsr,9.031736040376758e-05,1.0,0.0006519583910106023,0.93,3.193222375218491e-05,1.0,0.00859354696064797,0.8,0.9931601672469536,0.2,3.147193540781076e-05,1.0
-paintcontrol,0.0008428690575068284,0.92,9.031736040376758e-05,1.0,3.193222375218491e-05,1.0,3.193222375218491e-05,1.0,0.9999778748867064,0.0,3.147193540781076e-05,1.0
