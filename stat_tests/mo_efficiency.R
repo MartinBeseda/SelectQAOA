@@ -78,7 +78,7 @@ qaoa_configs <- list(
 A12_effect_size <- function(x, y) {
   n_x <- length(x)
   n_y <- length(y)
-  count <- sum(outer(x, y, "<")) + 0.5 * sum(outer(x, y, "=="))
+  count <- sum(outer(x, y, ">")) + 0.5 * sum(outer(x, y, "=="))
   return(count / (n_x * n_y))
 }
 
@@ -106,13 +106,49 @@ for (program in names(execution_times)) {
     group = rep(names(exec_data), each = 10)
   )
   
+  # Perform pairwise Kolmogorov-Smirnov test
+  group_list <- split(data$value, data$group)
+  ks_results <- data.frame()
+  
+  for (i in 1:(length(group_list) - 1)) {
+    for (j in (i + 1):length(group_list)) {
+      ks_test <- ks.test(group_list[[i]], group_list[[j]])
+      ks_results <- rbind(ks_results, 
+                          data.frame(Group1 = names(group_list)[i], 
+                                     Group2 = names(group_list)[j], 
+                                     Statistic = ks_test$statistic, 
+                                     P_Value = ks_test$p.value))
+    }
+  }
+  
+  cat("\nKolmogorov-Smirnov Test Results:\n")
+  print(ks_results)
+  
+  # Perform pairwise Kolmogorov-Smirnov test
+  group_list <- split(data$value, data$group)
+  ks_results <- data.frame()
+  
+  for (i in 1:(length(group_list) - 1)) {
+    for (j in (i + 1):length(group_list)) {
+      ks_test <- ks.test(group_list[[i]], group_list[[j]])
+      ks_results <- rbind(ks_results, 
+                          data.frame(Group1 = names(group_list)[i], 
+                                     Group2 = names(group_list)[j], 
+                                     Statistic = ks_test$statistic, 
+                                     P_Value = ks_test$p.value))
+    }
+  }
+  
+  cat("\nKolmogorov-Smirnov Test Results:\n")
+  print(ks_results)
+  
   # Perform Kruskal-Wallis test
   kruskal_test <- kruskal.test(value ~ group, data = data)
   print(kruskal_test)
   
   # Perform Dunn's test
   dunn_test <- tryCatch({
-    dunnTest(value ~ group, data = data, method = "bonferroni")
+    dunnTest(value ~ group, data = data, method = "bh")
   }, error = function(e) {
     warning("Dunn's test could not be performed: ", e$message)
     return(NULL)
@@ -140,7 +176,7 @@ for (program in names(execution_times)) {
       # Determine direction based on A12 value
       if (a12_value > 0.5) {
         direction <- paste(group1, "<", group2)
-      } else if (a12_value < 0.5) {
+      } else if (a12_value > 0.5) {
         direction <- paste(group1, ">", group2)
       } else {
         direction <- paste(group1, "≈", group2)  # If A12 = 0.5, groups are approximately equal
@@ -160,7 +196,8 @@ for (program in names(execution_times)) {
       
       # Extract p-value safely
       p_value <- dunn_row$P.unadj
-      significant <- ifelse(p_value < 0.05, "YES", "NO")
+      adj_p_value <- dunn_row$P.adj
+      significant <- ifelse(adj_p_value < 0.05, "YES", "NO")
       
       # Append valid results
       results <- rbind(results, data.frame(
@@ -168,6 +205,7 @@ for (program in names(execution_times)) {
         Group2 = group2,
         A12_Value = round(a12_value, 3),  # Round A12 for better readability
         P_Value = p_value,
+        ADJ_P_Value = adj_p_value,
         Significant = significant,
         Direction = direction,
         stringsAsFactors = FALSE

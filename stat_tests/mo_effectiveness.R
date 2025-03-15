@@ -1,6 +1,7 @@
 # Load necessary libraries
 library(FSA)
 library(PMCMRplus)
+library(coin)
 
 # Define the configurations
 configs <- list(
@@ -194,12 +195,31 @@ for (config_name in names(configs)) {
       group = rep(names(current_data), each = 10) # Each group has 10 values
     )
     
+    # Perform pairwise Kolmogorov-Smirnov test
+    group_list <- split(data$value, data$group)
+    ks_results <- data.frame()
+    
+    for (i in 1:(length(group_list) - 1)) {
+      for (j in (i + 1):length(group_list)) {
+        ks_test <- ks.test(group_list[[i]], group_list[[j]])
+        ks_results <- rbind(ks_results, 
+                            data.frame(Group1 = names(group_list)[i], 
+                                       Group2 = names(group_list)[j], 
+                                       Statistic = ks_test$statistic, 
+                                       P_Value = ks_test$p.value))
+      }
+    }
+    
+    cat("\nKolmogorov-Smirnov Test Results:\n")
+    print(ks_results)
+    
     # Perform Kruskal-Wallis test
     kruskal_test <- kruskal.test(value ~ group, data = data)
     print(kruskal_test)
     
     # Perform Dunn's test
-    dunn_test <- dunnTest(value ~ group, data = data, method = "bonferroni")
+    dunn_test <- dunnTest(value ~ group, data = data, method = "bh")
+    cat("Dunn's Test (Benjamini-Hochberg correction):\n")
     print(dunn_test$res)  # Print only p-values
     
     # Compute A12 for each pair of groups
