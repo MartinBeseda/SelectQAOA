@@ -175,12 +175,10 @@ for (program in names(execution_times)) {
       
       # Determine direction based on A12 value
       if (a12_value > 0.5) {
-        direction <- paste(group1, "<", group2)
-      } else if (a12_value > 0.5) {
         direction <- paste(group1, ">", group2)
       } else {
-        direction <- paste(group1, "≈", group2)  # If A12 = 0.5, groups are approximately equal
-      }
+        direction <- paste(group1, "<", group2)
+      } 
       
       # Check if comparison exists in Dunn's test
       comparison_str1 <- paste(group1, "-", group2)
