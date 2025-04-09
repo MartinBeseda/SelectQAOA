@@ -235,7 +235,7 @@ def print_result(result, testcase):
 def plot(fval_list, reps, file_name, problem_size):
     plt.plot(fval_list)
     plt.ylabel('fval')
-    plt.savefig("../results/igdec_qaoa/ideal/qaoa_"+str(reps)+"/" + file_name + "_three" + "/size_" + str(problem_size) + "/" + str(num_experiment)+"/fval_trend.png")
+    plt.savefig("../results/igdec_qaoa/aer_sim/qaoa_"+str(reps)+"/" + file_name + "_three" + "/size_" + str(problem_size) + "/" + str(num_experiment)+"/fval_trend.png")
 
 def scatter_merge(solution, data):
     # time = []
@@ -402,17 +402,17 @@ if __name__ == '__main__':
     values_solution = [best_itr, best_energy, best_solution, total_qaoa, total_impact, total_exe, execution_times, best_itr_times, best_itr_pcounts, best_itr_dists]
     solution_df.loc[len(solution_df)] = values_solution
 
-    if not os.path.exists("../results/igdec_qaoa/ideal/qaoa_"+str(reps)+"/" + file_name + "_three" + "/size_" + str(problem_size) + "/" + str(num_experiment)):
-        os.makedirs("../results/igdec_qaoa/ideal/qaoa_"+str(reps)+"/" + file_name + "_three"+ "/size_" + str(problem_size) + "/" + str(num_experiment))
-    log_df.to_csv("../results/igdec_qaoa/ideal/qaoa_"+str(reps)+"/" + file_name + "_three" + "/size_" + str(problem_size) + "/" + str(num_experiment)+"/log.csv")
+    if not os.path.exists("../results/igdec_qaoa/aer_sim/qaoa_"+str(reps)+"/" + file_name + "_three" + "/size_" + str(problem_size) + "/" + str(num_experiment)):
+        os.makedirs("../results/igdec_qaoa/aer_sim/qaoa_"+str(reps)+"/" + file_name + "_three"+ "/size_" + str(problem_size) + "/" + str(num_experiment))
+    log_df.to_csv("../results/igdec_qaoa/aer_sim/qaoa_"+str(reps)+"/" + file_name + "_three" + "/size_" + str(problem_size) + "/" + str(num_experiment)+"/log.csv")
 
-    if not os.path.exists("../results/igdec_qaoa/ideal/qaoa_"+str(reps)+"/" + file_name + "_three" + "/size_" + str(problem_size) + "/" + str(num_experiment)):
-        os.makedirs("../results/igdec_qaoa/ideal/qaoa_"+str(reps)+"/" + file_name + "_three" + "/size_" + str(problem_size) + "/" + str(num_experiment))
-    result_df.to_csv("../results/igdec_qaoa/ideal/qaoa_"+str(reps)+"/" + file_name + "_three" + "/size_" + str(problem_size) + "/" + str(num_experiment)+"/itr_results.csv")
+    if not os.path.exists("../results/igdec_qaoa/aer_sim/qaoa_"+str(reps)+"/" + file_name + "_three" + "/size_" + str(problem_size) + "/" + str(num_experiment)):
+        os.makedirs("../results/igdec_qaoa/aer_sim/qaoa_"+str(reps)+"/" + file_name + "_three" + "/size_" + str(problem_size) + "/" + str(num_experiment))
+    result_df.to_csv("../results/igdec_qaoa/aer_sim/qaoa_"+str(reps)+"/" + file_name + "_three" + "/size_" + str(problem_size) + "/" + str(num_experiment)+"/itr_results.csv")
 
-    if not os.path.exists("../results/igdec_qaoa/ideal/qaoa_"+str(reps)+"/" + file_name + "_three" + "/size_" + str(problem_size) + "/" + str(num_experiment)):
-        os.makedirs("../results/igdec_qaoa/ideal/qaoa_"+str(reps)+"/" + file_name + "_three" + "/size_" + str(problem_size) + "/" + str(num_experiment))
-    solution_df.to_csv("../results/igdec_qaoa/ideal/qaoa_"+str(reps)+"/" + file_name + "_three" + "/size_" + str(problem_size) + "/" + str(num_experiment)+"/solution.csv")
+    if not os.path.exists("../results/igdec_qaoa/aer_sim/qaoa_"+str(reps)+"/" + file_name + "_three" + "/size_" + str(problem_size) + "/" + str(num_experiment)):
+        os.makedirs("../results/igdec_qaoa/aer_sim/qaoa_"+str(reps)+"/" + file_name + "_three" + "/size_" + str(problem_size) + "/" + str(num_experiment))
+    solution_df.to_csv("../results/igdec_qaoa/aer_sim/qaoa_"+str(reps)+"/" + file_name + "_three" + "/size_" + str(problem_size) + "/" + str(num_experiment)+"/solution.csv")
 
     plot(fval_list, reps, file_name, problem_size)
 
