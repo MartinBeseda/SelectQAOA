@@ -1,0 +1,111 @@
+# Load necessary libraries
+library(FSA)
+library(PMCMRplus)
+library(coin)
+
+# Define the configurations
+configs <- list(
+  statevector = list(
+    flex = list(
+      rep1 = c(22, 1, 50, 49, 1, 51, 78, 1, 0, 344),
+      rep2 = c(0, 13, 79, 1, 58, 132, 91, 110, 4, 9),
+      rep4 = c(1, 128, 19, 64, 0, 184, 182, 104, 240, 220),
+      rep8 = c(275, 0, 172, 99, 4, 48, 115, 4, 37, 52),
+      rep16 = c(117, 22, 5, 0, 10, 111, 354, 31, 34, 4)
+    ),
+    grep = list(
+      rep1 = c(7, 0, 1, 13, 4, 0, 4, 0, 1, 0),
+      rep2 = c(25, 0, 37, 56, 0, 64, 1, 0, 2, 3),
+      rep4 = c(125, 141, 2, 236, 102, 80, 1, 2, 0, 0),
+      rep8 = c(116, 139, 0, 39, 0, 0, 75, 94, 0, 21),
+      rep16 = c(414, 17, 329, 278, 207, 338, 9, 427, 137, 293)
+    ),
+    gzip = list(
+      rep1 = c(21, 0, 29, 8, 38, 28, 12, 0, 10, 25),
+      rep2 = c(14, 0, 0, 12, 20, 2, 2, 1, 15, 87),
+      rep4 = c(0, 0, 53, 4, 10, 5, 1, 2, 34, 1),
+      rep8 = c(5, 53, 6, 6, 7, 10, 2, 9, 0, 6),
+      rep16 = c(8, 17, 0, 125, 126, 1, 31, 88, 124, 1)
+    ),
+    sed = list(
+      rep1 = c(3, 14, 45, 5, 8, 13, 13, 22, 127, 4),
+      rep2 = c(35, 26, 4, 4, 18, 13, 25, 42, 3, 139),
+      rep4 = c(6, 176, 6, 26, 42, 15, 5, 5, 191, 25),
+      rep8 = c(3, 52, 8, 17, 5, 2, 65, 67, 4, 3),
+      rep16 = c(28, 193, 161, 29, 36, 39, 68, 54, 64, 120)
+    )
+  )
+)
+
+# Function to compute A12 effect size
+A12_effect_size <- function(x, y) {
+  n_x <- length(x)
+  n_y <- length(y)
+  count <- sum(outer(x, y, ">")) + 0.5 * sum(outer(x, y, "=="))
+  return(count / (n_x * n_y))
+}
+
+# Iterate through each configuration
+for (config_name in names(configs)) {
+  cat("\n=============================\n")
+  cat("CONFIGURATION:", config_name, "\n")
+  cat("=============================\n")
+
+  # Iterate through each measurement group in the configuration
+  for (group_name in names(configs[[config_name]])) {
+    cat("\n--- Measurement Group:", group_name, "---\n")
+
+    # Extract the data for the current group
+    current_data <- configs[[config_name]][[group_name]]
+
+    # Convert to dataframe for analysis
+    data <- data.frame(
+      value = unlist(current_data),
+      group = rep(names(current_data), each = 10) # Each group has 10 values
+    )
+
+    # Perform pairwise Kolmogorov-Smirnov test
+    group_list <- split(data$value, data$group)
+    ks_results <- data.frame()
+
+    for (i in 1:(length(group_list) - 1)) {
+      for (j in (i + 1):length(group_list)) {
+        ks_test <- ks.test(group_list[[i]], group_list[[j]])
+        ks_results <- rbind(ks_results,
+                            data.frame(Group1 = names(group_list)[i],
+                                       Group2 = names(group_list)[j],
+                                       Statistic = ks_test$statistic,
+                                       P_Value = ks_test$p.value))
+      }
+    }
+
+    cat("\nKolmogorov-Smirnov Test Results:\n")
+    print(ks_results)
+
+    # Perform Kruskal-Wallis test
+    kruskal_test <- kruskal.test(value ~ group, data = data)
+    print(kruskal_test)
+
+    # Perform Dunn's test
+    dunn_test <- dunnTest(value ~ group, data = data, method = "bh")
+    cat("Dunn's Test (Benjamini-Hochberg correction):\n")
+    print(dunn_test$res)  # Print only p-values
+
+    # Compute A12 for each pair of groups
+    group_list <- lapply(current_data, as.numeric)
+    group_names <- names(group_list)
+
+    a12_results <- data.frame()
+    for (i in 1:(length(group_list) - 1)) {
+      for (j in (i + 1):length(group_list)) {
+        a12_value <- A12_effect_size(group_list[[i]], group_list[[j]])
+        a12_results <- rbind(a12_results, data.frame(Group1 = group_names[i], Group2 = group_names[j], A12 = a12_value))
+      }
+    }
+
+    # Print A12 effect size results
+    cat("\nA12 Effect Size (probability that x > y)\n")
+    print(a12_results)
+  }
+}
+
