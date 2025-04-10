@@ -46,7 +46,8 @@ for (config_name in names(config_map)) {
     }
   }
 }
-print(configs)
+
+#print(configs)
 
 # Function to compute A12 effect size
 A12_effect_size <- function(x, y) {

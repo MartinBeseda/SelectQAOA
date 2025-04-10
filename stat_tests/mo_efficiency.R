@@ -8,15 +8,7 @@ getwd()
 
 # Define function to read QAOA execution times from JSON
 read_qaoa_times <- function(program_name, config) {
-  if (config == "ideal") {
-    if (program_name == "grep") {
-      file_path <- paste0("../results/selectqaoa/ideal/", program_name, "-data-rep-16.json")
-    } else {
-      file_path <- paste0("../results/selectqaoa/ideal/", program_name, "-data-rep-1.json")
-    }
-  } else {
-    file_path <- paste0("../results/selectqaoa/", config, "/", program_name, "-data.json")
-  }
+  file_path <- paste0("../results/selectqaoa/", config, "/", program_name, "-data.json")
   
   if (!file.exists(file_path)) {
     warning(paste("File not found:", file_path))
@@ -67,7 +59,7 @@ execution_times <- list(
 # Define QAOA configurations
 qaoa_configs <- list(
   statevector_sim = "statevector_sim",
-  ideal = "ideal",
+  aer_sim = "aer_sim",
   fake_vigo = "fake_vigo",
   depolarizing_1 = "depolarizing_sim/01",
   depolarizing_2 = "depolarizing_sim/02",
@@ -98,6 +90,15 @@ for (program in names(execution_times)) {
     if (!is.null(qaoa_times)) {
       exec_data[[paste0("qaoa_", config_name)]] <- qaoa_times
     }
+  }
+  
+  # --- Summary: Print mean and standard deviation for each algorithm ---
+  cat("\nSummary statistics (mean ± sd) for each algorithm:\n")
+  for (alg_name in names(exec_data)) {
+    alg_data <- as.numeric(exec_data[[alg_name]]) / 1000 # Convert to seconds
+    m <- mean(alg_data)
+    s <- sd(alg_data)
+    cat(sprintf("  %s: %.2f ± %.2f\n", alg_name, m, s))
   }
   
   # Convert to dataframe for analysis
