@@ -1,40 +1,18 @@
 # Load necessary libraries
 library(FSA)
 library(PMCMRplus)
-library(coin)
+library(coin)library(jsonlite)
 
-# Define the configurations
+# Carica i dati dal file JSON
+json_data <- fromJSON("../statevector_multi_obj_frontiers_eval.json")
+
+# Ristruttura i dati nel formato desiderato
 configs <- list(
-  statevector = list(
-    flex = list(
-      rep1 = c(22, 1, 50, 49, 1, 51, 78, 1, 0, 344),
-      rep2 = c(0, 13, 79, 1, 58, 132, 91, 110, 4, 9),
-      rep4 = c(1, 128, 19, 64, 0, 184, 182, 104, 240, 220),
-      rep8 = c(275, 0, 172, 99, 4, 48, 115, 4, 37, 52),
-      rep16 = c(117, 22, 5, 0, 10, 111, 354, 31, 34, 4)
-    ),
-    grep = list(
-      rep1 = c(7, 0, 1, 13, 4, 0, 4, 0, 1, 0),
-      rep2 = c(25, 0, 37, 56, 0, 64, 1, 0, 2, 3),
-      rep4 = c(125, 141, 2, 236, 102, 80, 1, 2, 0, 0),
-      rep8 = c(116, 139, 0, 39, 0, 0, 75, 94, 0, 21),
-      rep16 = c(414, 17, 329, 278, 207, 338, 9, 427, 137, 293)
-    ),
-    gzip = list(
-      rep1 = c(21, 0, 29, 8, 38, 28, 12, 0, 10, 25),
-      rep2 = c(14, 0, 0, 12, 20, 2, 2, 1, 15, 87),
-      rep4 = c(0, 0, 53, 4, 10, 5, 1, 2, 34, 1),
-      rep8 = c(5, 53, 6, 6, 7, 10, 2, 9, 0, 6),
-      rep16 = c(8, 17, 0, 125, 126, 1, 31, 88, 124, 1)
-    ),
-    sed = list(
-      rep1 = c(3, 14, 45, 5, 8, 13, 13, 22, 127, 4),
-      rep2 = c(35, 26, 4, 4, 18, 13, 25, 42, 3, 139),
-      rep4 = c(6, 176, 6, 26, 42, 15, 5, 5, 191, 25),
-      rep8 = c(3, 52, 8, 17, 5, 2, 65, 67, 4, 3),
-      rep16 = c(28, 193, 161, 29, 36, 39, 68, 54, 64, 120)
-    )
-  )
+  statevector = lapply(json_data, function(program_data) {
+    # Rinomina le chiavi da "statevector_sim_1" a "rep1", ecc.
+    names(program_data) <- sub("statevector_sim_", "rep", names(program_data))
+    return(program_data)
+  })
 )
 
 # Function to compute A12 effect size
