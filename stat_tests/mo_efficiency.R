@@ -31,30 +31,52 @@ read_qaoa_times <- function(program_name, config) {
   return(qaoa_times2)
 }
 
-# Define execution times for classical algorithms
-# THIS VALUES HAVE BEEN COPIED FROM THE .JSON RESULTS OF THE DIVGA/AG/SELECTQA 
-execution_times <- list(
-  flex = list(
-    qtcs = c(2997.246, 2990.427, 2994.078, 2990.127, 2996.457, 2999.987, 2996.602, 2999.604, 2996.952, 2998.930),
-    div_ga = c(203222.63,204047.16,210975.58,225586.77,231729.42,211299.48,222097.04,214766.56,217488.39,252346.23),
-    add_greedy = c(8335,8335,8335,8335,8335,8335,8335,8335,8335,8335)
-  ),
-  grep = list(
-    qtcs = c(2988.608, 2993.446, 2996.067, 2993.917, 2989.430, 2996.594, 3000.109, 2987.973, 2991.871, 2993.156),
-    div_ga = c(99435.02,82829.09,92250.62,85914.50,86121.72,85333.98,88159.41,82616.48,84917.17,92114.53),
-    add_greedy = c(8884.02,8884.02,8884.02,8884.02,8884.02,8884.02,8884.02,8884.02,8884.02,8884.02)
-  ),
-  gzip = list(
-    qtcs = c(2987.110, 2986.404, 2989.508, 2985.612, 2991.988, 2990.904, 2988.741, 2985.020, 2995.317, 2994.872),
-    div_ga = c(17102.16, 17278.33, 17811.58, 18235.34, 18301.97, 18632.74, 20023.70, 20778.76, 22085.81, 23753.74),
-    add_greedy = c(232,232.7,232.7,232.7,232.7,232.7,232.7,232.7,232.7,232.7)
-  ),
-  sed = list(
-    qtcs = c(2997.188, 2998.320, 2988.932, 2998.150, 2989.302, 2991.186, 2992.056, 2994.666, 2998.397, 2998.455),
-    div_ga = c(68588.03,74543.25,75144.77,81220.53,70520.88,72081.48,88311.10,85676.48,91617.75,84372.59),
-    add_greedy = c(1896.88,1896.88,1896.88,1896.88,1896.88,1896.88,1896.88,1896.88,1896.88,1896.88)
+read_qtcs_times <- function(program) {
+  file_path <- paste0("../results/selectqa/", program, "-data.json")
+  if (!file.exists(file_path)) {
+    warning(paste("File not found:", file_path))
+    return(NULL)
+  }
+  json_data <- fromJSON(file_path)
+  return(as.numeric(json_data$`run_times(ms)`))
+}
+
+read_divga_times <- function(program) {
+  file_path <- paste0("../results/divga/", program, "_pareto_fronts_divga.json")
+  if (!file.exists(file_path)) {
+    warning(paste("File not found:", file_path))
+    return(NULL)
+  }
+  json_data <- fromJSON(file_path)
+  return(as.numeric(json_data$execution_times))
+}
+
+read_add_greedy_times <- function(program) {
+  file_path <- paste0("../results/add-greedy/", program, "_data.json")
+  if (!file.exists(file_path)) {
+    warning(paste("File not found:", file_path))
+    return(NULL)
+  }
+  json_data <- fromJSON(file_path)
+  resolution_time <- as.numeric(json_data$`resolution_time(ms)`)
+  return(rep(resolution_time, 10))  # replico 10 volte per avere vettore compatibile
+}
+
+programs <- c("flex", "grep", "gzip", "sed")
+execution_times <- list()
+
+for (program in programs) {
+  qtcs <- read_qtcs_times(program)
+  div_ga <- read_divga_times(program)
+  add_greedy <- read_add_greedy_times(program)
+
+  execution_times[[program]] <- list(
+    qtcs = qtcs,
+    div_ga = div_ga,
+    add_greedy = add_greedy
   )
-)
+}
+
 
 # Define QAOA configurations
 qaoa_configs <- list(
@@ -195,7 +217,7 @@ for (program in names(execution_times)) {
   }
   
   # Print Dunn test results and A12 effect sizes
-  cat("\n🔹 Pairwise Comparisons - Dunn's Test + A12 Effect Size:\n")
+  cat("\nPairwise Comparisons - Dunn's Test + A12 Effect Size:\n")
   print(results)
 }
 
