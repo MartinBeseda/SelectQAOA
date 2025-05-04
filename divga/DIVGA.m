@@ -86,10 +86,10 @@ for prog = programs
     fitnessFcn = @(x) fitnessFunction(x, costs, coverage, revealed_failures, norm_factor);
     
     % Array to store Pareto fronts
-    pareto_fronts = cell(1, 30);
+    pareto_fronts = cell(1, 10);
     
     % Array to store execution times
-    execution_times = zeros(1, 30);
+    execution_times = zeros(1, 10);
     
     % Step 1: Find a valid Hadamard matrix size
     H_size = 4;
@@ -109,7 +109,7 @@ for prog = programs
     % Step 4: Select the first M rows and N columns of the matrix H
     L = H_sorted(1:M, 1:N);
     
-    for rep = 1:30
+    for rep = 1:10
         fprintf('Repetition %d\n', rep);
         % Step 5: Convert L into a binary matrix Lm
         % Convert 1 to 1 and -1 to 0
@@ -456,7 +456,7 @@ for prog = programs
     
     % Save Pareto fronts and mean execution time to JSON file
     json_data = struct();
-    for i = 1:30
+    for i = 1:10
         field_name = sprintf('%s_pareto_front_%d', program, i-1);
         json_data.(field_name) = pareto_fronts{i};
     end

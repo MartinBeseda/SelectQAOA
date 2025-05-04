@@ -54,7 +54,7 @@ analyze_metric <- function(data, metric_name, dataset_name) {
   cat("\n=== Dataset:", dataset_name, "| Metric:", metric_name, "===\n")
   
   if (length(unique(data$value)) <= 1) {
-    cat("\n⚠️ All values are identical. Skipping statistical tests.\n")
+    cat("\nAll values are identical. Skipping statistical tests.\n")
     return()
   }
   
