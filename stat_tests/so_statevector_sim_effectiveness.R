@@ -1,118 +1,86 @@
-# Load required libraries
-library(dunn.test)        # For Dunn's test
-library(PMCMRplus)        # Alternative package for post-hoc tests
-library(effsize)          # For A12 effect size
-library(tidyverse)        # For data manipulation
-library(rstudioapi)
+library(jsonlite)
+library(dunn.test)
+library(effsize)
+library(PMCMRplus)
 
+# Load data
+data <- fromJSON("../normalized_fvals.json")
 
-setwd(dirname(getActiveDocumentContext()$path))
-getwd() 
-
-# Define datasets and repetitions
-data_names <- c("gsdtsr", "paintcontrol", "iofrol", "elevator", "elevator2")
-reps <- c(1, 2, 4, 8, 16)
-
-# Define which metrics to extract per dataset
-metrics_map <- list(
-  gsdtsr = c("final_test_suite_costs", "final_failure_rates"),
-  paintcontrol = c("final_test_suite_costs", "final_failure_rates"),
-  iofrol = c("final_test_suite_costs", "final_failure_rates"),
-  elevator = c("final_test_suite_costs", "final_input_divs"),
-  elevator2 = c("final_test_suite_costs", "final_pcounts", "final_dists")
-)
-
-parse_vector_string <- function(s) {
-  # Rimuove parentesi quadre, spazi, poi converte in numerico
-  s <- gsub("\\[|\\]", "", s)
-  as.numeric(strsplit(s, ",\\s*")[[1]])
+# Helper: A12 effect size
+a12 <- function(x, y) {
+  nx <- length(x)
+  ny <- length(y)
+  sum(outer(x, y, FUN = function(xi, yj) ifelse(xi > yj, 1, ifelse(xi == yj, 0.5, 0)))) / (nx * ny)
 }
 
-# Function to load data for a single dataset and metric
-load_data_for_metric <- function(dataset, metric) {
-  df_list <- list()
-  for (r in reps) {
-    file_path <- sprintf("../results/selectqaoa/statevector_sim/%s-rep-%d.csv", dataset, r)
-    if (file.exists(file_path)) {
-      df <- read.csv(file_path, stringsAsFactors = FALSE)
-      if (metric %in% colnames(df)) {
-        values_list <- lapply(df[[metric]], parse_vector_string)
-        values <- unlist(values_list)  # Flatten to numeric vector
-        reps_vec <- rep(paste0("rep_", r), length(values))
-        df_list[[paste0("rep_", r)]] <- data.frame(
-          value = values,
-          repetition = reps_vec
-        )
+# Helper: Cohen's d
+cohen_d <- function(x, y) {
+  n_x <- length(x)
+  n_y <- length(y)
+  s_pooled <- sqrt(( var(x) +  var(y)) / 2)
+  (mean(x) - mean(y)) / s_pooled
+}
+
+for (program in names(data)) {
+  cat("\n=== Program:", program, "===\n")
+  
+  reps <- names(data[[program]])
+  df <- data.frame(
+    value = unlist(data[[program]]),
+    rep = factor(rep(rep(reps, each = 10), times = 1))
+  )
+
+  if (program %in% c("gsdtsr", "iofrol")) {
+    # ANOVA
+    aov_res <- aov(value ~ rep, data = df)
+    print(summary(aov_res))
+    
+    # Tukey HSD
+    tukey <- TukeyHSD(aov_res)
+    print(tukey)
+
+    # Cohen's d for each pair
+    for (i in 1:(length(reps)-1)) {
+      for (j in (i+1):length(reps)) {
+        group1 <- as.numeric(data[[program]][[reps[i]]])
+        group2 <- as.numeric(data[[program]][[reps[j]]])
+        d <- cohen_d(group1, group2)
+        cat(sprintf("Cohen's d (%s - %s): %.3f\n", reps[i], reps[j], d))
       }
     }
-  }
-  bind_rows(df_list)
-}
 
-# Function to compute Kruskal-Wallis, Dunn and A12
-analyze_metric <- function(data, metric_name, dataset_name) {
-  cat("\n=== Dataset:", dataset_name, "| Metric:", metric_name, "===\n")
-  
-  if (length(unique(data$value)) <= 1) {
-    cat("\nAll values are identical. Skipping statistical tests.\n")
-    return()
-  }
-  
-  # Kruskal-Wallis Test
-  kruskal <- kruskal.test(value ~ repetition, data = data)
-  cat("\n> Kruskal-Wallis Test\n")
-  cat("H =", round(kruskal$statistic, 3), 
-      " | df =", kruskal$parameter, 
-      " | p-value =", format.pval(kruskal$p.value, digits = 4), "\n")
-  
-  # Post-hoc Dunn's Test
-  dunn_result <- dunn.test(data$value, g = data$repetition, method = "bh", kw = FALSE, list = TRUE)
-  
-  # Prepare summary table
-  summary_table <- data.frame(
-    Comparison = character(),
-    P_value = numeric(),
-    Adjusted_P = numeric(),
-    A12 = numeric(),
-    stringsAsFactors = FALSE
-  )
-  
-  for (k in seq_along(dunn_result$comparisons)) {
-    comp <- dunn_result$comparisons[k]
-    raw_p <- dunn_result$P[k]
-    adj_p <- dunn_result$P.adjusted[k]
+  } else {
+    # Kruskal-Wallis
+    kw <- kruskal.test(value ~ rep, data = df)
+    cat(sprintf("Kruskal-Wallis H = %.4f, p-value = %.4f\n", as.numeric(kw$statistic), kw$p.value))
     
-    # estrai gruppi x e y
-    parts <- unlist(strsplit(comp, " - "))
-    rep_x <- parts[1]
-    rep_y <- parts[2]
+    # Dunn's test (use PMCMRplus version for data.frame support)
+    dunn_res <- dunnTest(value ~ rep, data = df, method = "bonferroni")
     
-    group_x <- data %>% filter(repetition == rep_x) %>% pull(value)
-    group_y <- data %>% filter(repetition == rep_y) %>% pull(value)
+    # Extract results
+    results <- dunn_res$res
+    names(results) <- tolower(names(results))  # for consistency
     
-    a12_val <- cliff.delta(group_x, group_y)$estimate
-    
-    summary_table <- rbind(summary_table, data.frame(
-      Comparison = sprintf("%s > %s", rep_x, rep_y),
-      P_value = round(raw_p, 4),
-      Adjusted_P = round(adj_p, 4),
-      A12 = round(a12_val, 3)
-    ))
-  }
-  
-  cat("\n> Post-hoc Dunn’s Test + A12 Effect Size:\n")
-  print(summary_table, right = FALSE, row.names = FALSE)
-}
-
-# Main execution loop
-for (dataset in data_names) {
-  metrics <- metrics_map[[dataset]]
-  for (metric in metrics) {
-    data_metric <- load_data_for_metric(dataset, metric)
-    if (nrow(data_metric) > 0) {
-      analyze_metric(data_metric, metric, dataset)
-    } else {
-      cat(sprintf("No data found for %s - %s\n", dataset, metric))
+    # Extract effect size A12
+    get_group_vals <- function(group_label) {
+      df$value[df$rep == group_label]
     }
+    
+    # Split into Group1 and Group2
+    pairs <- strsplit(results$comparison, " - ")
+    results$group1 <- sapply(pairs, `[`, 1)
+    results$group2 <- sapply(pairs, `[`, 2)
+    
+    # Calculate A12 for each pair
+    results$a12 <- mapply(function(g1, g2) {
+      x <- get_group_vals(g1)
+      y <- get_group_vals(g2)
+      a12(x, y)
+    }, results$group1, results$group2)
+    
+    # Reorder and print nicely
+    results <- results[, c("group1", "group2", "p.unadj", "p.adj", "a12")]
+    colnames(results) <- c("Group1", "Group2", "p-value", "adj. p-value", "A12 effect size (x > y)")
+    print(results, row.names = FALSE)
   }
 }
