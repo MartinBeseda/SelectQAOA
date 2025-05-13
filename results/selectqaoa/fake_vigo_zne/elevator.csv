@@ -1,0 +1,2 @@
+final_test_suite_costs,final_effectivenesses,average_qpu_access_time(ms),stdev_qpu_access_time(ms),qpu_run_times(ms)
+"[514, 514]","[5.844140572578977, 5.844140572578977]",30.56502342224121,0.985561905578746,"[31.261920928955078, 29.868125915527344]"
