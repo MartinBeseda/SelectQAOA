@@ -40,12 +40,13 @@ load_csv_column <- function(filepath, metric) {
 
 # ------------------ ELEVATOR2 ------------------
 dataset <- "elevator2"
+dataset_file <- "elevator2-effectiveness-focus"
 metrics_s <- c("final_test_suite_costs", "final_pcounts", "final_dists")
 metrics_i <- c("final_test_suite_costs", "final_suite_pcounts", "final_suite_dists")
 
 for (i in seq_along(metrics_s)) {
   for (sel_config in selectqaoa_configs) {
-    sel_path <- file.path("..", "results", "selectqaoa", sel_config, paste0(dataset, ".csv"))
+    sel_path <- file.path("..", "results", "selectqaoa", sel_config, paste0(dataset_file, ".csv"))
     sel_values <- load_csv_column(sel_path, metrics_s[i])
     if (is.null(sel_values)) next
     for (ig_config in igdec_qaoa_elevator2_configs) {
@@ -67,12 +68,13 @@ for (i in seq_along(metrics_s)) {
 
 # ------------------ ELEVATOR ------------------
 dataset <- "elevator"
+dataset_file <- "elevator-effectiveness-focus"
 metrics_s <- c("final_test_suite_costs", "final_effectivenesses")
 metrics_i <- c("final_test_suite_costs", "final_suite_input_divs")
 
 for (i in seq_along(metrics_s)) {
   for (sel_config in selectqaoa_configs) {
-    sel_path <- file.path("..", "results", "selectqaoa", sel_config, paste0(dataset, ".csv"))
+    sel_path <- file.path("..", "results", "selectqaoa", sel_config, paste0(dataset_file, ".csv"))
     sel_values <- load_csv_column(sel_path, metrics_s[i])
     if (is.null(sel_values)) next
     for (ig_config in igdec_configs) {
@@ -94,12 +96,13 @@ for (i in seq_along(metrics_s)) {
 
 # ------------------ IOFROL ------------------
 dataset <- "iofrol"
+dataset_file <- "iofrol-effectiveness-focus"
 metrics_s <- c("final_test_suite_costs", "final_effectivenesses")
 metrics_i <- c("final_test_suite_costs", "final_failure_rates")
 
 for (i in seq_along(metrics_s)) {
   for (sel_config in selectqaoa_configs) {
-    sel_path <- file.path("..", "results", "selectqaoa", sel_config, paste0(dataset, ".csv"))
+    sel_path <- file.path("..", "results", "selectqaoa", sel_config, paste0(dataset_file, ".csv"))
     sel_values <- load_csv_column(sel_path, metrics_s[i])
     if (is.null(sel_values)) next
     for (ig_config in igdec_configs) {
@@ -145,7 +148,7 @@ for (metric in metrics) {
   
   # SelectQAOA
   for (sel_config in selectqaoa_configs) {
-    path <- file.path("..", "results", "selectqaoa", sel_config, "gsdtsr.csv")
+    path <- file.path("..", "results", "selectqaoa", sel_config, "gsdtsr-effectiveness-focus.csv")
     val <- load_csv_column(path, metric)
     if (!is.null(val)) groups[[paste0("SelectQAOA_", sel_config)]] <- val
   }
@@ -203,7 +206,7 @@ for (metric in metrics) {
   
   # SelectQAOA
   for (sel_config in selectqaoa_configs) {
-    path <- file.path("..", "results", "selectqaoa", sel_config, "paintcontrol.csv")
+    path <- file.path("..", "results", "selectqaoa", sel_config, "paintcontrol-effectiveness-focus.csv")
     val <- load_csv_column(path, metric)
     if (!is.null(val)) groups[[paste0("SelectQAOA_", sel_config)]] <- val
   }
