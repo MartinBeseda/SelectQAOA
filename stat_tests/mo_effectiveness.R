@@ -8,7 +8,7 @@ setwd(dirname(getActiveDocumentContext()$path))
 getwd() 
 
 # Load JSON data
-json_data <- fromJSON("../multi_obj_frontier_eval.json")
+json_data <- fromJSON("../multi_obj_frontiers_eval.json")
 
 # Helper to map JSON config names to R config names
 config_map <- list(
