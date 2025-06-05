@@ -6,7 +6,7 @@ library(FSA)         # Per dunnTest
 library(rcompanion)  # Per p-value adjustment
 
 # Configurazioni
-selectqaoa_configs <- c("statevector_sim", "aer_sim", "fake_vigo",
+selectqaoa_configs <- c("statevector_sim", "aer_sim", "fake_vigo", "fake_vigo_zne",
                         "depolarizing_sim/01", "depolarizing_sim/02", "depolarizing_sim/05")
 igdec_qaoa_elevator2_configs <- c("ideal/qaoa_1/elevator_three", "noise/qaoa_1/elevator_one")
 igdec_configs <- c("ideal", "noise")
@@ -41,8 +41,8 @@ load_csv_column <- function(filepath, metric) {
 # ------------------ ELEVATOR2 ------------------
 dataset <- "elevator2"
 dataset_file <- "elevator2-effectiveness-focus"
-metrics_s <- c("final_test_suite_costs", "final_pcounts", "final_dists")
-metrics_i <- c("final_test_suite_costs", "final_suite_pcounts", "final_suite_dists")
+metrics_s <- c("final_pcounts", "final_dists")
+metrics_i <- c("final_suite_pcounts", "final_suite_dists")
 
 for (i in seq_along(metrics_s)) {
   for (sel_config in selectqaoa_configs) {
@@ -69,8 +69,8 @@ for (i in seq_along(metrics_s)) {
 # ------------------ ELEVATOR ------------------
 dataset <- "elevator"
 dataset_file <- "elevator-effectiveness-focus"
-metrics_s <- c("final_test_suite_costs", "final_effectivenesses")
-metrics_i <- c("final_test_suite_costs", "final_suite_input_divs")
+metrics_s <- c("final_effectivenesses")
+metrics_i <- c("final_suite_input_divs")
 
 for (i in seq_along(metrics_s)) {
   for (sel_config in selectqaoa_configs) {
@@ -97,8 +97,8 @@ for (i in seq_along(metrics_s)) {
 # ------------------ IOFROL ------------------
 dataset <- "iofrol"
 dataset_file <- "iofrol-effectiveness-focus"
-metrics_s <- c("final_test_suite_costs", "final_effectivenesses")
-metrics_i <- c("final_test_suite_costs", "final_failure_rates")
+metrics_s <- c("final_effectivenesses")
+metrics_i <- c("final_failure_rates")
 
 for (i in seq_along(metrics_s)) {
   for (sel_config in selectqaoa_configs) {
@@ -125,7 +125,7 @@ for (i in seq_along(metrics_s)) {
 # ------------------ GSDTSR (Kruskal-Wallis + Dunn + d) ------------------
 print("------------------ GSDTSR (Kruskal-Wallis + Dunn + d) ------------------")
 dataset <- "gsdtsr"
-metrics <- c("final_test_suite_costs", "final_effectivenesses")
+metrics <- c("final_effectivenesses")
 
 for (metric in metrics) {
   groups <- list()
@@ -183,7 +183,7 @@ for (metric in metrics) {
 # ---------- paint control: ANOVA + Tukey HSD + Cohen's d ----------
 print("--------- paint control: ANOVA + Tukey HSD + Cohen's d ----------")
 dataset <- "paintcontrol"
-metrics <- c("final_test_suite_costs", "final_effectivenesses")
+metrics <- c("final_effectivenesses")
 
 for (metric in metrics) {
   groups <- list()
