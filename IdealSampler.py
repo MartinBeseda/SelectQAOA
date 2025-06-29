@@ -88,7 +88,7 @@ if __name__ == "__main__":
     qc.cx(0, 1)
     qc.measure_all()
 
-    sampler = NufSampler()
+    sampler = IdealSampler()
     result = sampler.run([qc], shots=1024)
     print(result[0].data.meas.get_counts())  # {'00': 500, '11': 500}
 
