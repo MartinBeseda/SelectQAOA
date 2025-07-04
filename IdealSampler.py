@@ -1,94 +1,121 @@
-from qiskit.primitives import BaseSamplerV2
+from qiskit.primitives import BaseSampler #This is Alias for BaseSamplerV1
+from qiskit.primitives.sampler import SamplerResult
+from qiskit.result import QuasiDistribution
 from qiskit.quantum_info import Statevector
 from qiskit.circuit import QuantumCircuit
-from qiskit.primitives.utils import _circuit_key
-from types import SimpleNamespace
-from typing import List, Optional, Sequence, Union
-import copy
+from typing import Optional, Sequence, Union
+from qiskit.primitives.primitive_job import PrimitiveJob  # add this at the top
 
+class IdealSampler(BaseSampler):
+    def __init__(self):
+        super().__init__()
+        self._circuits = []
 
-class DeterministicCounts:
-    """Returns exact counts from probabilities × shots (no randomness)."""
-    def __init__(self, quasi_dist, shots):
-        self._counts = {
-            k: int(round(v * shots)) for k, v in quasi_dist.items()
-        }
-
-    def get_counts(self):
-        return self._counts
-
-
-class IdealSampler(BaseSamplerV2):
-    def __init__(self, circuits: Optional[Sequence[QuantumCircuit]] = None):
-        self._circuits = circuits or []
-        self._circuit_ids = {_circuit_key(circ): i for i, circ in enumerate(self._circuits)}
-
-    def _get_or_add_circuit(self, circuit: QuantumCircuit) -> int:
-        key = _circuit_key(circuit)
-        if key in self._circuit_ids:
-            return self._circuit_ids[key]
-        else:
-            idx = len(self._circuits)
-            self._circuits.append(circuit)
-            self._circuit_ids[key] = idx
-            return idx
-
-    def run(
+    def _run(
         self,
-        circuits: Sequence[Union[int, QuantumCircuit]],
+        circuits: Sequence[Union[QuantumCircuit, int]],
         parameter_values: Optional[Sequence[Sequence[float]]] = None,
-        **run_options,
+        **run_options
     ):
-        resolved_circuits = []
+        if parameter_values is None:
+            parameter_values = [()] * len(circuits)
 
+        resolved_circuits = []
         for circ in circuits:
             if isinstance(circ, int):
-                resolved_circuits.append(copy.deepcopy(self._circuits[circ]))
+                resolved_circuits.append(self._circuits[circ])
             else:
+                self._circuits.append(circ)
                 resolved_circuits.append(circ)
 
-        if parameter_values is None:
-            parameter_values = [()] * len(resolved_circuits)
-
         shots = run_options.get("shots", 1024)
-
         results = []
+
         for circuit, params in zip(resolved_circuits, parameter_values):
             if circuit.num_parameters > 0:
-                param_dict = dict(zip(circuit.parameters, params))
-                circuit = circuit.assign_parameters(param_dict, inplace=False)
+                bound = circuit.assign_parameters(dict(zip(circuit.parameters, params)))
+            else:
+                bound = circuit
 
-            # Remove measurements
-            circuit = circuit.remove_final_measurements(inplace=False)
-
-            # Get statevector and probabilities
-            sv = Statevector(circuit)
+            bound = bound.remove_final_measurements(inplace=False)
+            sv = Statevector(bound)
             probs = sv.probabilities_dict()
 
-            # Convert keys to full bitstrings
-            n = circuit.num_qubits
+            n = bound.num_qubits
             full_probs = {
                 f"{int(k, 2):0{n}b}" if isinstance(k, str) else f"{k:0{n}b}": v
                 for k, v in probs.items()
             }
 
-            counts = DeterministicCounts(full_probs, shots)
-            result = SimpleNamespace(data=SimpleNamespace(meas=counts))
-            results.append(result)
+            counts = {k: int(round(v * shots)) for k, v in full_probs.items()}
+            total = sum(counts.values())
+            quasi = QuasiDistribution({k: v / total for k, v in counts.items()})
+            results.append(quasi)
 
-        return results
+        metadata = [{} for _ in results]
+        job = PrimitiveJob(lambda: SamplerResult(quasi_dists=results, metadata=metadata))
+        job._submit()
+        return job
 
-    def circuits(self) -> List[QuantumCircuit]:
-        return self._circuits
+        #return SamplerResult(quasi_dists=results, metadata=metadata)
 
 
-if __name__ == "__main__":
-    qc = QuantumCircuit(2)
-    qc.h(0)
-    qc.cx(0, 1)
-    qc.measure_all()
 
-    sampler = IdealSampler()
-    result = sampler.run([qc], shots=1024)
-    print(result[0].data.meas.get_counts())  # {'00': 500, '11': 500}
+from qiskit_algorithms import QAOA
+
+from qiskit_optimization.applications import Maxcut
+from qiskit_optimization.converters import QuadraticProgramToQubo
+from qiskit_optimization.algorithms import MinimumEigenOptimizer
+from qiskit_algorithms.utils import algorithm_globals  # ✅
+from qiskit.circuit.library import TwoLocal
+from qiskit_optimization import QuadraticProgram
+from qiskit_algorithms.optimizers import COBYLA
+# Set random seed
+algorithm_globals.random_seed = 42
+
+# Define MaxCut problem (triangle)
+edges = [(0, 1), (1, 2), (0, 2)]
+maxcut = Maxcut(graph=edges)
+problem: QuadraticProgram = maxcut.to_quadratic_program()
+
+# QAOA with your DeterministicSampler and COBYLA optimizer
+qaoa = QAOA(
+    sampler=IdealSampler(),
+    optimizer=COBYLA(maxiter=100),
+    reps=1
+)
+
+# Solve using MinimumEigenOptimizer
+optimizer = MinimumEigenOptimizer(qaoa)
+result = optimizer.solve(problem)
+
+print("Optimal solution:", result.x)
+print("Objective value:", result.fval)
+
+
+from qiskit import QuantumCircuit
+
+# Create a Bell state circuit
+qc = QuantumCircuit(2)
+qc.h(0)
+qc.cx(0, 1)
+qc.measure_all()
+
+# Instantiate your DeterministicSampler
+sampler = IdealSampler()
+
+# Run the circuit (returns a PrimitiveJob)
+job = sampler.run([qc], shots=1000)
+
+# Get the SamplerResult
+result = job.result()
+
+# Access quasi-distribution
+print("Probabilities (normalized):")
+print(result.quasi_dists[0])  # Example: {'00': 0.5, '11': 0.5}
+
+# Convert to deterministic counts
+counts = {k: int(v * 1000) for k, v in result.quasi_dists[0].items()}
+print("\nDeterministic counts (probs × shots):")
+print(counts)  # Example: {'00': 500, '11': 500}
 
